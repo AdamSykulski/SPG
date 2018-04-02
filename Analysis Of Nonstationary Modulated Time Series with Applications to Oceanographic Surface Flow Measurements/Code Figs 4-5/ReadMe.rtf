@@ -1,0 +1,24 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1404\cocoasubrtf470
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 This zip file contains 13 additional files:\
+- NumericalModelRun.m is the numerical model simulation to perform the analysis of Figure 5\
+- Fig4Code.m is the file for generating Figure 4\
+- Fig5Code.m is the file for generating Figure 5\
+- exportfig.m is the code use for exporting eps figures in the paper\
+- fminsearchbnd.m is an extension to fminsearch which allows parameters to be bounded by transformations in such a way that unconstrained optimisation via fminsearch can still be performed\
+- complexouacvs.m is the autocovariance of the complex OU process\
+- OUmodel.m is the stationary blurred Whittle likelihood fit to the complex OU process\
+- wind.mat is the real wind data used in the numerical model\
+- fitOU.m fits the complex OU model using the nonstationary likelihood\
+- coriolis_kernel.m returns the kernel that is used to compute the expected periodogram for the given sequence of coriolis frequencies\
+- lkh_OU.m return the likelihood of the nonstationary model fit\
+- StressFromWindVector.m calculates the wind stress for the numerical model\
+- ForcedInertialOscillationsOnTheEarthFlux.m calculates the wind time series with spherical dynamics\
+\
+Instructions:\
+Run NumericalModelRun.m (with all accompanying files in the same directory) to generate the time series and perform the likelihood fits\
+Then run Fig4Code.m and Fig5Code.m to generate the figures based off the fits}

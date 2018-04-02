@@ -1,0 +1,1 @@
+Run table3.m to reproduce the results of table 3.

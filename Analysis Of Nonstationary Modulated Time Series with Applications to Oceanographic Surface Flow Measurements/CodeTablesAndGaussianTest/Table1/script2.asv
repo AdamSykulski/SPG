@@ -1,0 +1,119 @@
+clear all;
+
+
+%Parameters for the script
+sample_size = 2^12;
+nb_independent_samples = 2000;
+sample_sizes_list =  2.^(7:12);
+nb_sample_sizes = length(sample_sizes_list);
+
+%Parameters of the latent AR(1) process
+r = 0.8;
+sigma = 1;
+
+
+%The sequence of frequency parameters is generated according to a bounded
+%random walk.
+betas = zeros(sample_size, nb_independent_samples);
+Delta = 1;
+gamma = pi/2;
+A = 1/20;
+betas(1,:) = max(min(gamma + A*randn(1, nb_independent_samples), gamma + Delta), gamma - Delta);
+for t=2:sample_size
+    betas(t,:) = max(min(betas(t-1,:) + A*randn(1, nb_independent_samples), gamma + Delta), gamma - Delta);
+end
+
+%Data will be stored in Z
+Z = zeros(sample_size, nb_independent_samples);
+%Estimates stored in the following variables
+r_estimates = zeros(nb_sample_sizes, nb_independent_samples);
+sigma_estimates = zeros(nb_sample_sizes, nb_independent_samples);
+estimate_times = zeros(nb_sample_sizes, nb_independent_samples);
+exit_flags =  zeros(nb_sample_sizes, nb_independent_samples);
+r_estimates_2 = zeros(nb_sample_sizes, nb_independent_samples);
+sigma_estimates_2 = zeros(nb_sample_sizes, nb_independent_samples);
+estimate_times_2 = zeros(nb_sample_sizes, nb_independent_samples);
+exit_flags_2 =  zeros(nb_sample_sizes, nb_independent_samples);
+
+%Generation
+innovationsR = randn(sample_size, nb_independent_samples);
+innovationsI = randn(sample_size, nb_independent_samples);
+innovations = innovationsR + 1i * innovationsI;
+Z(:, 1) = sigma/sqrt(2*(1-r^2)) .* innovations(:,1);
+for t = 1:sample_size-1
+    Z(t+1, :) = r*exp(1i*betas(t,:)).*Z(t, :) + sigma/sqrt(2)*innovations(t+1,:);
+end
+
+%Options for the optimization
+options=optimset('GradObj','on','MaxFunEvals',100000,'MaxIter',10000,'TolFun',1e-3,'TolX',1e-7,'Display','on');
+rStart = 0.1;
+sigmaStart = 0.1;
+
+
+%Computing the kernel
+ker = coriolis_kernel(betas);
+
+%Estimations
+for i_sample_size = 1:nb_sample_sizes
+    size = sample_sizes_list(i_sample_size);
+    
+    %Computation of periodograms
+    P = 1/size*abs(fft(Z(1:size,:))).^2;
+    
+    for i_sample = 1:nb_independent_samples
+        %Computation of the modulating sequence when assuming stationarity
+        phi_0 = mean(betas(1:size, i_sample));
+%         g_0 = zeros(1,size);
+%         g_0(1) = exp(1i*phi_0);
+%         for t=1:size-1
+%             g_0(t+1) = g_0(t)*exp(1i*phi_0);
+%         end
+        g_0 = exp(1i*phi_0*(0:size-1));
+        
+        %True modulating sequence
+%         g = zeros(1, size);
+%         g(1) = exp(1i*betas(1, i_sample));
+%         for t=1:size-1
+%             g(t+1) = g(t)*exp(1i*betas(t+1, i_sample));
+%         end
+        g = exp(1i*cumsum(betas(1:size,i_sample)'));
+        
+        disp(['Sample size: ' num2str(size)])
+        disp(['Sample nb ' num2str(i_sample)]);
+        %Estimation via method not accounting for changing frequency
+        tic
+        [est,fval,exitflag] = fminsearch(@(x) lkh_(P(:, i_sample)', x(1), x(2), size, g_0), [rStart, sigmaStart], options);
+        estimate_times(i_sample_size, i_sample) = toc;
+        r_estimates(i_sample_size, i_sample) = est(1);
+        sigma_estimates(i_sample_size, i_sample) = est(2);
+        exit_flags(i_sample_size, i_sample) = exitflag;
+        disp(est);
+        
+        %Estimation via method accounting for changing frequency
+        tic
+        [est2,fval2,exitflag2] = fminsearch(@(x) lkh_(P(:, i_sample)', x(1), x(2), size, g), [rStart, sigmaStart], options);
+        estimate_times_2(i_sample_size, i_sample) = toc;
+        r_estimates_2(i_sample_size, i_sample) = est2(1);
+        sigma_estimates_2(i_sample_size, i_sample) = est2(2);
+        exit_flags_2(i_sample_size, i_sample) = exitflag2;
+        disp(est2);
+    end
+    
+    %Method 1.
+    bias_r = mean(r_estimates-r, 2);
+    var_r = var(r_estimates, 0, 2);
+    MSE_r = bias_r.^2 + var_r;
+    
+    bias_s = mean(sigma_estimates-sigma, 2);
+    var_s = var(sigma_estimates, 0, 2);
+    MSE_s = bias_s.^2 + var_s;
+    
+    %Method 2.
+    bias_r2 = mean(r_estimates_2-r, 2);
+    var_r2 = var(r_estimates_2, 0, 2);
+    MSE_r2 = bias_r2.^2 + var_r2;
+    
+    bias_s2 = mean(sigma_estimates_2-sigma, 2);
+    var_s2 = var(sigma_estimates_2, 0, 2);
+    MSE_s2 = bias_s2.^2 + var_s2;
+end
