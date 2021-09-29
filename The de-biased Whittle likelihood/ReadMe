@@ -1,13 +1,16 @@
 The De-Biased Whittle Likelihood
 
-by Adam M. Sykulski, Sofia C. Olhede, Arthur P. Guillaumin, Jonathan M. Lilly and Jeffrey J. Early (2017) 
+by Adam M. Sykulski, Sofia C. Olhede, Arthur P. Guillaumin, Jonathan M. Lilly and Jeffrey J. Early (2019) 
 
 email: a.sykulski@lancaster.ac.uk with queries
 
-All code is in MATLAB. There are 2 links below to downloadable zip files. Each zip file has a ReadMe with important info and instructions
+All code is in MATLAB. There are 3 links below to downloadable zip files. Each zip file has a ReadMe with important info and instructions
 
 Tab1Fig1Code.zip
   - provides code to generate Table 1 and Figure 1
 
-Table2Code.zip
-  - provides code to generate Table 2
+Tab2Fig2Code.zip
+  - provides code to generate Figure 2 and Table 2 (without standard errors), fast to run, less than a minute
+  
+Tab2CodeWithErrors.zip
+  - provides code to generate Table 2 (with standard errors), slow to run, around 10 minutes depending on your processor
